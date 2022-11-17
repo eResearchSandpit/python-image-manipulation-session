@@ -16,10 +16,6 @@ pool = mp.Pool(mp.cpu_count())
 raw_path = Path.cwd().joinpath('test_data','images')
 imfiles = raw_path.glob("*.JPG")
 
-# # Print filepath we're working on and process filename
-# for filepath in imfiles:
-#     print(filepath)
-#     imageprocess(filepath, output_path)
-
-[pool.apply(imageprocess, args=(filepath, output_path)) for filepath in imfiles]
-# [pool.apply(imageprocess, args=(filepath, output_path)) for filepath in imfiles]
+#
+for result in pool.map(imageprocess, imfiles):
+    pass

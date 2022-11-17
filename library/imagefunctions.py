@@ -1,7 +1,7 @@
 from pathlib import Path
 from PIL import Image, ImageDraw
 
-def imageprocess(filepath, output_path):
+def imageprocess(filepath):
     """Prepare image to be suitable for MachineLearning
 
     Takes image at filepath and crops the vendor info bar off 
@@ -12,6 +12,7 @@ def imageprocess(filepath, output_path):
     filepath -- the path to the image
     output_path -- the path the modified image is saved to
     """
+    output_path = 'output'
     im = Image.open(filepath)
 
     #Store the width and height
