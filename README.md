@@ -1,3 +1,10 @@
+# Python image manipulation talk
+
+## The data
+
+We'll be using images from camera traps to test manipulating images at the small scale - 100's of images and at the very large scale (on your own time!) of hundreds of thousands of images.  The data and instructions for accessing it are here: https://lila.science/datasets/wellingtoncameratraps
+
+
 ### Download metadata
 
 Get azcopy which we'll use to get a subset of the data
