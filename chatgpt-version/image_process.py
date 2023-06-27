@@ -29,8 +29,8 @@ def process_images(input_dir, output_dir):
             continue
 
 
-input_dir = "/nfs/scratch/geldenan/WellingtonCameraTraps/example_images"
-output_dir = "/nfs/scratch/geldenan/WellingtonCameraTraps/cropped_images"
+input_dir = "../example_images"
+output_dir = "../cropped_images"
 
 process_images(input_dir, output_dir)
 
