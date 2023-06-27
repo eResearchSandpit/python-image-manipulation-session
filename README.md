@@ -259,7 +259,7 @@ git commit -m "Made a start on image processing, printing out the files we need 
 git push
 ```
 
-### Lets edit an image
+## Lets edit an image
 
 Let's get a single image and crop the bottom of it.
 
@@ -312,67 +312,64 @@ im1 = im.crop((left, top, right, bottom))
 im1.show()
 ```
 
-Now we can optionally cover the vendor brand - probably the best way to prep the images for ML would be to crop away the entire lower secton including the brand, but we'll show how to draw on images as it could be useful
+### Drawing on Images
 
-In the same ipython session
+The next step in our Python image processing journey is to cover the camera vendor's brand by drawing a rectangle. This is a useful technique if you're concerned about your machine learning model training on a logo. However, in such cases, it would be even better to trim the entire bottom of the image to avoid the model training on a black square.
+
+Let's proceed with this in the same IPython session:
+
 ```python
-from PIL import Image, ImageDraw #need ImageDraw
+from PIL import Image, ImageDraw  # Import ImageDraw
 
-
-#get new image width and height, this'll make the math easier
+# Get the new image width and height to simplify the subsequent calculations
 width, height = im1.size
 
-#prepare im2 
+# Prepare im2 
 im2 = ImageDraw.Draw(im1)
 
-#google drawing rectangles with pillow
-#rectangle takes coordinates like so
-#[(x0, y0), (x1, y1)]
+# The 'rectangle' function takes coordinates as follows: [(x0, y0), (x1, y1)]
 
-
-#Estimate size of rectangle
+# Let's estimate the size of the rectangle we want to draw
 w, h = 190, 90
 
+# Establish the rectangle's coordinates
 x0 = 0
 y0 = height - h
 x1 = w
 y1 = height
 
-
-#[(x0, y0), (x1, y1)]
 shape = [(x0, y0), (x1, y1)]
 
-im2.rectangle(shape, fill ="black",outline ="green")
-im2.show()  #Doesn't work!  It's not a proper image, it's really rectangle
+# Draw a rectangle on the image with a green outline and a black fill
+im2.rectangle(shape, fill="black", outline="green")
 
-im1.show() # we need slightly more
+# Attempt to display the image
+im2.show()  # This won't work as expected because it's not a proper image but rather a rectangle
 
+im1.show()  # This is what we actually need to display
 
-#Estimate size of rectangle
+# Let's modify the size of the rectangle
 w, h = 200, 100
 
+# Update the coordinates
 x0 = 0
 y0 = height - h
 x1 = w
 y1 = height
 
-
-#[(x0, y0), (x1, y1)]
 shape = [(x0, y0), (x1, y1)]
 
-im2.rectangle(shape, fill ="black",outline ="black")
+# Draw another rectangle, this time with a black outline and black fill
+im2.rectangle(shape, fill="black", outline="black")
 
-im1.show() 
+im1.show()  # Now it works!
 
-#saved the image
+# Save the image
 im1.save('test.png')
-ls
-rm test.png
 ```
 
-That seemed to work, let's put it into the script
+The above process works well. Let's incorporate it into our script, `imageprocess.py`:
 
-`imageprocess.py`
 ```python
 from pathlib import Path
 from PIL import Image, ImageDraw
@@ -380,11 +377,11 @@ from PIL import Image, ImageDraw
 test_path = 'test_data'
 output_path = 'output'
 
-#Set raw path to test data for now
+# Set raw_path to test data for now
 raw_path = test_path
 
 # Generate Path objects
-raw_path = Path.cwd().joinpath('test_data','images')
+raw_path = Path.cwd().joinpath('test_data', 'images')
 imfiles = raw_path.glob("*.JPG")
 
 # Print filename we're working on and process filename
@@ -392,44 +389,44 @@ for filepath in imfiles:
     print(filepath)
     im = Image.open(filepath)
 
-    #Store the width and height
+    # Store the width and height
     width, height = im.size
 
     # Setting the points for cropped image
     left = 0
     top = 0
     right = width
-    bottom = height-100
+    bottom = height - 100
 
-    #crop the bottom off the image
+    # Crop the bottom off the image
     im_cropped = im.crop((left, top, right, bottom))
 
-    #get new image width and height, this'll make the math easier
+    # Get new image width and height
     width, height = im_cropped.size
 
-    #Prepare rectangle
+    # Prepare to draw rectangle
     draw = ImageDraw.Draw(im_cropped)
 
-    #Size of rectangle
+    # Size of rectangle
     w, h = 200, 100
 
+    # Establish the coordinates
     x0 = 0
     y0 = height - h
     x1 = w
     y1 = height    
 
     shape = [(x0, y0), (x1, y1)]
-    draw.rectangle(shape, fill ="black",outline ="black")
+    draw.rectangle(shape, fill="black", outline="black")
 
-    #how will we save without overwriting?
-    # current filename is
-    # PosixPath('/home/andre/Documents/talks/python_image_manip/test_data/images/010116060142029a3301.JPG')
-    #im1.save(filename)
+    # How can we save the new image without overwriting the original?
+    # The current filename is, for example:
+    #
+
+ PosixPath('/home/andre/Documents/talks/python_image_manip/test_data/images/010116060142029a3301.JPG')
 ```
 
-Ah, we've reached a problem!  How do we save without overwiting our original files?
-
-Experiment in ipython!
+We have encountered a problem: we need to save the new images without overwriting the original ones. Let's figure out how to do this by experimenting in IPython:
 
 ```python
 from pathlib import Path
@@ -437,25 +434,25 @@ from pathlib import Path
 test_path = 'test_data'
 output_path = 'output'
 
-#Set raw path to test data for now
+# Set raw_path to test data for now
 raw_path = test_path
 
 # Generate Path objects
-raw_path = Path.cwd().joinpath('test_data','images')
+raw_path = Path.cwd().joinpath('test_data', 'images')
 imfiles = raw_path.glob("*.JPG")
 
 filepath = next(imfiles)
 
-#try tab autocomplete
+# Check the filename with tab autocomplete
 filepath.name
 
-#Now just join to the output
-outpath = Path.cwd().joinpath(output_path,filepath.name)
+# Now just join to the output
+outpath = Path.cwd().joinpath(output_path, filepath.name)
 ```
 
-Let's add that to the end of out script and test it.
+Having learned how to save images in a new location without overwriting the originals, let's add this to our script and test it.
 
-`imageprocess.py`
+`imageprocess.py`:
 ```python
 from pathlib import Path
 from PIL import Image, ImageDraw
@@ -463,11 +460,11 @@ from PIL import Image, ImageDraw
 test_path = 'test_data'
 output_path = 'output'
 
-#Set raw path to test data for now
+# Set raw_path to test data for now
 raw_path = test_path
 
 # Generate Path objects
-raw_path = Path.cwd().joinpath('test_data','images')
+raw_path = Path.cwd().joinpath('test_data', 'images')
 imfiles = raw_path.glob("*.JPG")
 
 # Print filepath we're working on and process filename
@@ -475,52 +472,49 @@ for filepath in imfiles:
     print(filepath)
     im = Image.open(filepath)
 
-    #Store the width and height
+    # Store the width and height
     width, height = im.size
 
     # Setting the points for cropped image
     left = 0
     top = 0
     right = width
-    bottom = height-100
+    bottom = height - 100
 
-    #crop the bottom off the image
+    # Crop the bottom off the image
     im_cropped = im.crop((left, top, right, bottom))
 
-    #get new image width and height, this'll make the math easier
+    # Get new image width and height
     width, height = im_cropped.size
 
-    #Prepare rectangle
+    # Prepare to draw rectangle
     draw = ImageDraw.Draw(im_cropped)
 
-    #Size of rectangle
+    # Size of rectangle
     w, h = 200, 100
 
+    # Establish the coordinates
     x0 = 0
     y0 = height - h
     x1 = w
     y1 = height    
 
     shape = [(x0, y0), (x1, y1)]
-    draw.rectangle(shape, fill ="black",outline ="black")
+    draw.rectangle(shape, fill="black", outline="black")
 
-    #how will we save without overwriting?
-    # current filepath is
-    # PosixPath('/home/andre/Documents/talks/python_image_manip/test_data/images/010116060142029a3301.JPG')
-    #im1.save(filename)
-
-    outpath = Path.cwd().joinpath(output_path,filepath.name)
+    # Now let's save our new image in a new location without overwriting the original
+    outpath = Path.cwd().joinpath(output_path, filepath.name)
 
     im_cropped.save(outpath)
 ```
 
-There will likely be errors and typos causing problems when this is run, 
+There you go! Now we're able to manipulate our images without altering the original data.
 
-```bash
-python imageprocess.py
-```
+### Handling Errors and Leveraging Version Control
 
-Once that's working, let's version control it. That way if we break it in future, we have a working version
+As you begin to run your script with the command `python imageprocess.py`, you may encounter errors or typos. Debugging is an inherent part of coding, so don't be disheartened by these setbacks. Instead, use these issues as opportunities to learn and improve your code.
+
+Once your script is working smoothly, it's a good practice to version control it. By doing this, you create a safety net; in case anything goes wrong in the future, you can always roll back to this working version. Git is a popular version control system and here's how you can use it:
 
 ```bash
 git status
@@ -529,40 +523,34 @@ git commit -m "Yay! A minimal working version - at least on test data"
 git push
 ```
 
-### Run time woes
+### Monitoring Run Time
 
-Great job!  That did seem to take a while to run, so lets time it
+Good work! However, you might notice that the script takes a while to process the images. To measure exactly how long it takes, use the `time` command:
+
 ```bash
 time python imageprocess.py
-#returns
-3.24s user 0.14s system 99% cpu 3.381 total
 ```
 
-On my computer, that takes about 3.24 seconds to do 100 images.
+On my machine, it takes about 3.24 seconds to process 100 images. This might vary on your machine, but let's use this as a reference.
 
-Let's double check how many images we need to process.  `wc` is a shell command which can count lines (it stands for word count)
+Next, we need to ascertain the total number of images we need to process. We can use `wc` (word count) command in the shell to count the lines in `metadata/filelist.txt`, as each line corresponds to an image:
+
 ```bash
 wc -l < metadata/filelist.txt
-
-#returns
-270450
 ```
 
-Hmm, lets use ipython as a calculator
+Let's assume the output of the above command is 270450, which means we have 270450 images to process. Now, we can estimate the total run time by multiplying the time taken to process one image by the total number of images. We can use IPython as a calculator for this:
+
 ```python
 time_per_im = 3.24/100
 total_images = 270450
 runtime = total_images * time_per_im
-runtime
 
-#in hours
+# In hours
 runtime/3600
-
-#returns
-2.4340500000000005
 ```
 
-Three hours isn't too bad! If you only need to run this once, I'd say you're basically done. However, what if you wanted to do this often and needed to go much faster?
+This results in approximately 2.43 hours, which is manageable if you're running the script occasionally. However, if you need to run the script frequently or on a much larger dataset, you might want to consider optimizing your script to reduce the run time. This could involve techniques like parallel processing, hardware acceleration, or even more efficient coding practices. Let's continue exploring these possibilities in the next section.
 
 ### Going wide, really wide - multiprocessing
 
