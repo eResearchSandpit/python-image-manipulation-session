@@ -1,37 +1,40 @@
-# Python image manipulation talk
 
-## The data
+# Python Image Manipulation with thousands of files - or how to get computers to do tedious things for you.
 
-We'll be using images from camera traps to test manipulating images at the small scale - 100's of images and at the very large scale (on your own time!) of hundreds of thousands of images.  The data and instructions for accessing it are here: https://lila.science/datasets/wellingtoncameratraps
+## The Dataset
 
+We will be utilizing images from camera traps to experiment with manipulating images on a small scale - hundreds of images, and on a grand scale (on your own time!) - hundreds of thousands of images. Here are the data and instructions for accessing it: https://lila.science/datasets/wellingtoncameratraps
 
-### Download metadata
+### Downloading Metadata
 
-Get azcopy which we'll use to get a subset of the data
+To acquire a subset of the data, we'll use azcopy, which you can get from this link: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10
 
-https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10
+(utilize cliget)
 
-(use cliget)
+Azcopy allows us to download the files, which are stored in a single, massive directory. To list the files (it will take a while), use the command:
 
-We can use azcopy to get the files, they are all in a huge single directory, we can list it (it'll take forever) with
 ```
 ./azcopy list https://lilablobssc.blob.core.windows.net/wellington-unzipped/images > metadata/filelist.txt
 ```
 
-This takes about 5 min to run, so I've put it up on github for us
+This command takes about 5 minutes to execute, so I've already uploaded it to GitHub for us.
 
-We can get a subset of the metadata
+To access a subset of the metadata, use the following command:
+
 ```bash
 cd metadata
 cat filelist.txt | head -n 100 | cut -d ' ' -f 2 | cut -d ';' -f 1 > filesubset.txt
 ```
 
-To download the data, lets try get just one file, let's choose the first one
+To download the data, let's attempt to download a single file. We'll choose the first one:
 
 ```bash
 cd ..
 head metadata/filesubset.txt
-#Returns
+```
+This will return:
+
+```
 010116002950005as381.JPG
 010116002950005as382.JPG
 010116002952005as383.JPG
@@ -43,64 +46,28 @@ head metadata/filesubset.txt
 010116005222041as533.JPG
 010116013338033a5751.JPG
 ```
-Download a couple of files to have a look
+
+Let's download a couple of files to examine:
+
 ```bash
 ./azcopy cp "https://lilablobssc.blob.core.windows.net/wellington-unzipped/images/010116002950005as381.JPG" test_data/
-
 ./azcopy cp "https://lilablobssc.blob.core.windows.net/wellington-unzipped/images/010116002950005as382.JPG" test_data/
 ```
 
-#### Quick aside
+## Downloading 100 Images for Testing
 
-Generate an image diff to help us see what's happening using imagemagick
+For testing, let's download a subset of the images. To download multiple images, we could loop through and download one file at a time. However, due to some of azcopy's functionality, this might not yield the expected result and could be slow. After looking into the azcopy documentation, it suggests that we can download multiple files by feeding them as a list of file paths separated by a `;`.
 
-```bash
- compare -fuzz 10% 010116002950005as381.JPG 010116002950005as382.JPG -compose src diff.png
-```
+Test it with this command:
 
-## Download a 100 images to test with
-
-To test, lets download a subset of the images.  To download multiple images, we could do it in a loop, dowloading one file at a time.  Beause of some of the way that azcopy works, this doesn't really work as expected and it'll be slow. Looking at the azcopy docs a way to download multiple files is too feed them as a list of files separarated by a `;`
-
-To test
 ```bash
 ./azcopy cp "https://lilablobssc.blob.core.windows.net/wellington-unzipped/images/" test_data/ --include-path '010116002950005as381.JPG;010116002950005as382.JPG;010116002952005as383.JPG;010116004822024b7481.JPG'
 ```
 
-That seems to work, but I'm scared of downloading 100 files to the wrong place, so lets just get a subset.
-```bash
-head metadata/filesubset.txt > metadata/tinysubset.txt #get 5 lines
-cat metadata/tinysubset.txt
-```
-
-To join the lines together into a list separated by `;` we can use the linux shell tool called `paste` - there are a lot of ways to do this, from a shell script with a loop, `sed`, `awk` or writing some python.
+This seems to work, but to avoid downloading 100 files to the incorrect location, let's first acquire a smaller subset:
 
 ```bash
-paste -sd ';' metadata/tinysubset.txt
-```
-
-Lets create a small shell script to do this and download the files, this helps us keep a record of what we did.
-
-```bash
-#!/bin/bash
-
-imagenames=$(paste -sd ';' metadata/tinysubset.txt)  # assign output of command to variable, could also use backtics
-
-echo "files to be downloaded:"
-echo $imagenames
-
-#download
-./azcopy cp \
-    "https://lilablobssc.blob.core.windows.net/wellington-unzipped/images/" \
-    test_data/ \
-    --include-path "$imagenames"
-
-```
-
-Testing that seems to work, so let's do the 100 file download by changing the line `imagenames=$(paste -sd ';' metadata/tinysubset.txt)` to `imagenames=$(paste -sd ';' metadata/filesubset.txt)`
-
-This will take about 2 min
-
+head metadata/filesubset.txt > metadata/tinysubset.txt #get
 ### Version control
 
 We've done a bunch of work so far. Lets add what we have to git.
