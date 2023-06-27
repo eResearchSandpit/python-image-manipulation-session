@@ -56,3 +56,69 @@ Chat
 >After verifying that everything works as expected, you can then apply this to your full dataset. Remember to change `input_dir` and `output_dir` to the directories where your full dataset is stored and where you want to save the processed images, respectively.
 >
 >One more thing: because you're dealing with a large amount of images, consider parallelizing this process to speed it up. You could use libraries like `multiprocessing` in Python to accomplish this. Also, make sure your code handles exceptions properly -- you don't want it to crash halfway through processing 100,000 images.
+
+some of the images are capitalised JPG
+
+Chat
+>Ah, good point. We can modify the `process_images` function to be case-insensitive when checking for file extensions:
+>
+>```python
+>def process_images(input_dir, output_dir):
+>    """
+>    Process all images in a directory.
+>    """
+>    # Make the output directory if it doesn't already exist
+>    os.makedirs(output_dir, exist_ok=True)
+>
+>    for filename in os.listdir(input_dir):
+>        if filename.lower().endswith((".jpg", ".png")): 
+>            input_image_path = os.path.join(input_dir, filename)
+>            output_image_path = os.path.join(output_dir, filename)
+>            crop_image(input_image_path, output_image_path)
+>            print(f'Processed {filename}')
+>        else:
+>            continue
+>```
+>
+>Now, the function will correctly process images regardless of whether their extensions are lowercase or uppercase.
+
+I'd like to use a python virtual env for this, can you show me how to set it up and install the needed packages?
+
+Chat
+>Sure! It's a good idea to use a virtual environment to isolate the dependencies for your project.
+>
+>Firstly, navigate to your project directory:
+>
+>```bash
+>cd /nfs/scratch/geldenan/WellingtonCameraTraps/
+>```
+>
+>Create the virtual environment. If you're using python3, you should already have the `venv` module:
+>
+>```bash
+>python3 -m venv env
+>```
+>
+>This will create a new directory named `env` in your current directory, which will contain the Python executable files and a copy of the `pip` library which you can use to install other packages.
+>
+>Activate the environment:
+>
+>```bash
+>source env/bin/activate
+>```
+>
+>Your shell prompt will change to show the name of the activated environment. Now, when you install packages, they will be installed in the `env` directory, isolated from the global Python environment.
+>
+>Install the Pillow library which we need for image processing:
+>
+>```bash
+>pip install pillow
+>```
+>
+>Once you have installed the packages and are done with your work, you can deactivate the environment:
+>
+>```bash
+>deactivate
+>```
+>
+>The next time you want to work on your project, don't forget to activate the environment again with `source env/bin/activate`.
