@@ -1,5 +1,6 @@
 
-# Python Image Manipulation with thousands of files - or how to get computers to do tedious things for you.
+# Python Image Manipulation with thousands of files
+## Or, How to Get Computers to Do Tedious Things for You
 
 ## The Dataset
 
@@ -8,8 +9,6 @@ We will be utilizing images from camera traps to experiment with manipulating im
 ### Downloading Metadata
 
 To acquire a subset of the data, we'll use azcopy, which you can get from this link: https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10
-
-(utilize cliget)
 
 Azcopy allows us to download the files, which are stored in a single, massive directory. To list the files (it will take a while), use the command:
 
