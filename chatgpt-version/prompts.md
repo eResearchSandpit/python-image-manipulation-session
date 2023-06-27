@@ -174,3 +174,173 @@ If I wanted to go though all the images, after cropping them and equalize their 
 >```
 >
 >Again, I'd recommend testing this with your small dataset before running it on all your images. Also, remember that histogram equalization can sometimes produce unwanted results, especially when applied to natural images. Make sure to check the results to see if this method is appropriate for your specific dataset.
+
+thanks!  Can we add multiprocessing to this?  
+
+>Certainly, Python's `multiprocessing` module is a great way to parallelize the image processing and speed up the task. We can create a pool of processes and distribute the image processing among them.
+>
+>Let's modify the `process_images` function:
+>
+>```python
+>import os
+>from multiprocessing import Pool
+>from functools import partial
+>
+>def process_images(input_dir, output_dir, processes=4):
+>    """
+>    Process all images in a directory using multiple processes.
+>    """
+>    # Make the output directory if it doesn't already exist
+>    os.makedirs(output_dir, exist_ok=True)
+>
+>    # Get a list of all image file paths
+>    image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir) 
+>                   if f.lower().endswith((".jpg", ".png"))]
+>
+>    # Use a multiprocessing Pool
+>    with Pool(processes=processes) as pool:
+>        # Use functools.partial to make a new function where the output directory is already given
+>        func = partial(crop_and_equalize_image, output_dir=output_dir)
+>        # Map the function to the image files, distributing the work among the processes in the Pool
+>        pool.map(func, image_files)
+>```
+>
+>And change the `crop_and_equalize_image` function to take an output directory instead of a full path, so it can generate the output image path from the input image path:
+>
+>```python
+>def crop_and_equalize_image(input_image_path, output_dir):
+>    """
+>    Crop the bottom 100 pixels off an image and equalize its histogram.
+>    """
+>    image = Image.open(input_image_path)
+>    width, height = image.size
+>    new_height = height - 100  # subtract 100 pixels from the original height
+>    image = image.crop((0, 0, width, new_height))  # parameters are left, upper, right, lower
+>    
+>    # equalize the histogram
+>    image = ImageOps.equalize(image)
+>    
+>    # Generate the output image path
+>    filename = os.path.basename(input_image_path)
+>    output_image_path = os.path.join(output_dir, filename)
+>    
+>    image.save(output_image_path)
+>    print(f'Processed {filename}')
+>```
+>
+>In `process_images`, you can specify how many processes you want to create in the `Pool` with the `processes` parameter. Adjust this according to the capabilities of your machine.
+>
+>Remember to test this with a small subset of images before running it on all your images, as parallel processing can put a lot of load on your system.
+
+Great!  Lastly I'll be running this on an HPC with slurm, could we pickup the number of threads from slurm environment variables?  Lets make this a separate python file. 
+
+>Sure! Slurm sets a number of environment variables that you can use, including `SLURM_CPUS_PER_TASK` which tells you how many CPUs are allocated per task. We can modify the `process_images` function to use this environment variable to determine the number of processes.
+>
+>Here's the complete code for your new Python file:
+>
+>```python
+>import os
+>from PIL import Image, ImageOps
+>from multiprocessing import Pool
+>from functools import partial
+>
+>def crop_and_equalize_image(input_image_path, output_dir):
+>    """
+>    Crop the bottom 100 pixels off an image and equalize its histogram.
+>    """
+>    image = Image.open(input_image_path)
+>    width, height = image.size
+>    new_height = height - 100  # subtract 100 pixels from the original height
+>    image = image.crop((0, 0, width, new_height))  # parameters are left, upper, right, lower
+>    
+>    # equalize the histogram
+>    image = ImageOps.equalize(image)
+>    
+>    # Generate the output image path
+>    filename = os.path.basename(input_image_path)
+>    output_image_path = os.path.join(output_dir, filename)
+>    
+>    image.save(output_image_path)
+>    print(f'Processed {filename}')
+>
+>def process_images(input_dir, output_dir):
+>    """
+>    Process all images in a directory using multiple processes.
+>    """
+>    # Make the output directory if it doesn't already exist
+>    os.makedirs(output_dir, exist_ok=True)
+>
+>    # Get a list of all image file paths
+>    image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir) 
+>                   if f.lower().endswith((".jpg", ".png"))]
+>
+>    # Get the number of processes from the Slurm environment variable
+>    processes = int(os.getenv('SLURM_CPUS_PER_TASK', default=4))
+>
+>    # Use a multiprocessing Pool
+>    with Pool(processes=processes) as pool:
+>        # Use functools.partial to make a new function where the output directory is already given
+>        func = partial(crop_and_equalize_image, output_dir=output_dir)
+>        # Map the function to the image files, distributing the work among the processes in the Pool
+>        pool.map(func, image_files)
+>
+>if __name__ == "__main__":
+>    input_dir = "/nfs/scratch/geldenan/WellingtonCameraTraps/images/images"
+>    output_dir = "/nfs/scratch/geldenan/WellingtonCameraTraps/equalized_images"
+>
+>    process_images(input_dir, output_dir)
+>```
+>
+>In the `process_images` function, I've used `os.getenv` to get the value of `SLURM_CPUS_PER_TASK`. The second argument to `os.getenv` is a default value that is used if the environment variable is not set, which I've set to 4. Adjust this default value as needed.
+>
+>This code should be ready to be run on your HPC with Slurm. Just save it into a Python file and run it like you normally would in your Slurm script. You might need to load the appropriate Python module and activate your virtual environment in your Slurm script, depending on how your HPC is set up.
+
+Ah great!  Let's say the python module is
+Python/3.10.4-bare
+
+and it needs GCCcore/11.3.0 to be loaded.  Also the max run time there is 5 hours
+
+>Alright, here's the updated script that loads the correct Python module along with the required GCCcore module. The maximum runtime is also adjusted to 5 hours.
+>
+>```bash
+>#!/bin/bash
+>#SBATCH --job-name=image_process
+>#SBATCH --partition=quicktest
+>#SBATCH --nodes=1
+>#SBATCH --ntasks=1
+>#SBATCH --cpus-per-task=32
+>#SBATCH --time=5:00:00
+>#SBATCH --mem=10G
+>
+># Load the necessary modules
+>module load GCCcore/11.3.0
+>module load Python/3.10.4-bare
+>
+># Set the directory where the Python virtual environment will be created
+>ENVDIR="/nfs/scratch/geldenan/WellingtonCameraTraps/env"
+>
+># Create the Python virtual environment if it doesn't exist
+>if [ ! -d "$ENVDIR" ]; then
+>    python -m venv $ENVDIR
+>    source $ENVDIR/bin/activate
+>    pip install pillow
+>    deactivate
+>fi
+>
+># Activate the Python virtual environment
+>source $ENVDIR/bin/activate
+>
+># Run the Python script
+>python /nfs/scratch/geldenan/WellingtonCameraTraps/chatgpt-version/image_process.py
+>
+># Deactivate the Python virtual environment
+>deactivate
+>```
+>
+>Remember to submit it to Slurm with `sbatch`:
+>
+>```bash
+>sbatch submit.sh
+>```
+>
+>With these settings, your job will use 32 processors on a single node for a maximum of 5 hours. Please adjust these settings as needed for your HPC system.

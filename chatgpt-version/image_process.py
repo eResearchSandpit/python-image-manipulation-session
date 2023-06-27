@@ -1,7 +1,29 @@
-from PIL import Image, ImageOps
 import os
+from multiprocessing import Pool
+from functools import partial
+from PIL import Image, ImageOps
 
-def crop_and_equalize_image(input_image_path, output_image_path):
+def process_images(input_dir, output_dir, processes=4):
+    """
+    Process all images in a directory using multiple processes.
+    """
+    # Make the output directory if it doesn't already exist
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Get a list of all image file paths
+    image_files = [os.path.join(input_dir, f) for f in os.listdir(input_dir) 
+                   if f.lower().endswith((".jpg", ".png"))]
+
+    # Use a multiprocessing Pool
+    with Pool(processes=processes) as pool:
+        # Use functools.partial to make a new function where the output directory is already given
+        func = partial(crop_and_equalize_image, output_dir=output_dir)
+        # Map the function to the image files, distributing the work among the processes in the Pool
+        pool.map(func, image_files)
+
+
+
+def crop_and_equalize_image(input_image_path, output_dir):
     """
     Crop the bottom 100 pixels off an image and equalize its histogram.
     """
@@ -13,24 +35,13 @@ def crop_and_equalize_image(input_image_path, output_image_path):
     # equalize the histogram
     image = ImageOps.equalize(image)
     
+    # Generate the output image path
+    filename = os.path.basename(input_image_path)
+    output_image_path = os.path.join(output_dir, filename)
+    
     image.save(output_image_path)
+    print(f'Processed {filename}')
 
-
-def process_images(input_dir, output_dir):
-    """
-    Process all images in a directory.
-    """
-    # Make the output directory if it doesn't already exist
-    os.makedirs(output_dir, exist_ok=True)
-
-    for filename in os.listdir(input_dir):
-        if filename.lower().endswith((".jpg", ".png")): 
-            input_image_path = os.path.join(input_dir, filename)
-            output_image_path = os.path.join(output_dir, filename)
-            crop_and_equalize_image(input_image_path, output_image_path)
-            print(f'Processed {filename}')
-        else:
-            continue
 
 input_dir = "../example_images"
 output_dir = "../cropped_images"
