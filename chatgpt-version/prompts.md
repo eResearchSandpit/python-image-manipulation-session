@@ -119,3 +119,58 @@ I'd like to use a python virtual env for this, can you show me how to set it up 
 >```
 >
 >The next time you want to work on your project, don't forget to activate the environment again with `source env/bin/activate`.
+
+If I wanted to go though all the images, after cropping them and equalize their brightness histograms could we do that?  and saved them in a directory called equalized?  Maybe we could try and ensure that each image was a bright as the average
+
+>Sure, we can use the `ImageOps.equalize` function from Pillow to equalize the histogram. This spreads out the most frequent intensity values in an image, enhancing the contrast. Note that this doesn't make each image as bright as the average; histogram equalization is a method of contrast adjustment using the image's histogram.
+>
+>Here's how you can modify the `crop_image` function to also equalize the histogram:
+>
+>```python
+>from PIL import Image, ImageOps
+>
+>def crop_and_equalize_image(input_image_path, output_image_path):
+>    """
+>    Crop the bottom 100 pixels off an image and equalize its histogram.
+>    """
+>    image = Image.open(input_image_path)
+>    width, height = image.size
+>    new_height = height - 100  # subtract 100 pixels from the original height
+>    image = image.crop((0, 0, width, new_height))  # parameters are left, upper, right, lower
+>    
+>    # equalize the histogram
+>    image = ImageOps.equalize(image)
+>    
+>    image.save(output_image_path)
+>```
+>
+>Then, you can call this function in your `process_images` function:
+>
+>```python
+>def process_images(input_dir, output_dir):
+>    """
+>    Process all images in a directory.
+>    """
+>    # Make the output directory if it doesn't already exist
+>    os.makedirs(output_dir, exist_ok=True)
+>
+>    for filename in os.listdir(input_dir):
+>        if filename.lower().endswith((".jpg", ".png")): 
+>            input_image_path = os.path.join(input_dir, filename)
+>            output_image_path = os.path.join(output_dir, filename)
+>            crop_and_equalize_image(input_image_path, output_image_path)
+>            print(f'Processed {filename}')
+>        else:
+>            continue
+>```
+>
+>You can specify the output directory for the equalized images:
+>
+>```python
+>input_dir = "/nfs/scratch/geldenan/WellingtonCameraTraps/images/images"
+>output_dir = "/nfs/scratch/geldenan/WellingtonCameraTraps/equalized_images"
+>
+>process_images(input_dir, output_dir)
+>```
+>
+>Again, I'd recommend testing this with your small dataset before running it on all your images. Also, remember that histogram equalization can sometimes produce unwanted results, especially when applied to natural images. Make sure to check the results to see if this method is appropriate for your specific dataset.
