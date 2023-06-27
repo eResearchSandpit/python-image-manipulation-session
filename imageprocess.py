@@ -1,14 +1,14 @@
 from pathlib import Path
 from PIL import Image, ImageDraw
 
-test_path = 'test_data'
+test_path = 'example_images
 output_path = 'output'
 
 #Set raw path to test data for now
 raw_path = test_path
 
 # Generate Path objects
-raw_path = Path.cwd().joinpath('test_data','images')
+raw_path = Path.cwd().joinpath(example_images)
 imfiles = raw_path.glob("*.JPG")
 
 # Print filepath we're working on and process filename
