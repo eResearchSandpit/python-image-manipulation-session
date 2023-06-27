@@ -539,7 +539,7 @@ Next, we need to ascertain the total number of images we need to process. We can
 wc -l < metadata/filelist.txt
 ```
 
-Let's assume the output of the above command is 270450, which means we have 270450 images to process. Now, we can estimate the total run time by multiplying the time taken to process one image by the total number of images. We can use IPython as a calculator for this:
+That returns 270450, which means we have 270450 images to process. We can use IPython as a calculator to work out the estimated run time:
 
 ```python
 time_per_im = 3.24/100
@@ -550,7 +550,7 @@ runtime = total_images * time_per_im
 runtime/3600
 ```
 
-This results in approximately 2.43 hours, which is manageable if you're running the script occasionally. However, if you need to run the script frequently or on a much larger dataset, you might want to consider optimizing your script to reduce the run time. This could involve techniques like parallel processing, hardware acceleration, or even more efficient coding practices. Let's continue exploring these possibilities in the next section.
+This results in just under 3 hours, which is manageable if you're running the script occasionally. However, if you need to run the script frequently or on a much larger dataset, you might want to consider optimizing your script to reduce the run time. This could involve techniques like parallel processing, hardware acceleration, or even more efficient coding practices. Let's continue exploring these possibilities in the next section.
 
 ### Going wide, really wide - multiprocessing
 
