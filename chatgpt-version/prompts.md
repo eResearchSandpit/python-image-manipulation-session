@@ -5,7 +5,6 @@ I'd like my code to reside there, the images I want to process are all in one hu
 
 I'd like to crop the bottom 100 pixels off the images.  I have a small test dataset at /nfs/scratch/geldenan/WellingtonCameraTraps/example_images we could test on first?
 
-Chat
 >Sure, we can use the Pillow library in Python to accomplish this. Below is a simple example of how you can process the images. Let's start by writing a function to crop one image:
 >
 >```python
@@ -59,7 +58,6 @@ Chat
 
 some of the images are capitalised JPG
 
-Chat
 >Ah, good point. We can modify the `process_images` function to be case-insensitive when checking for file extensions:
 >
 >```python
@@ -84,7 +82,6 @@ Chat
 
 I'd like to use a python virtual env for this, can you show me how to set it up and install the needed packages?
 
-Chat
 >Sure! It's a good idea to use a virtual environment to isolate the dependencies for your project.
 >
 >Firstly, navigate to your project directory:
