@@ -99,9 +99,9 @@ Testing this seems to work, so let's now download 100 files by changing the line
 
 This download will take approximately 2 minutes.
 
-### Version control
+### Version Control
 
-We've done a bunch of work so far. Lets add what we have to git.
+We've done a significant amount of work up to this point. Let's save what we've achieved so far to Git.
 
 ```bash
 git init
@@ -111,116 +111,118 @@ git remote add origin git@github.com:eResearchSandpit/python-image-manipulation-
 git push --set-upstream origin main
 ```
 
-We don't want to version control images, so let's add a `.gitignore` file so we can avoid accidentally version controlling a bunch of images.
+We don't want to add images to version control, so let's create a `.gitignore` file to prevent accidentally tracking a multitude of images.
+
+```bash
+nano .gitignore
+```
+
+In the `.gitignore` file, add this line:
 
 ```
-nano .gitignore
-
-#add this line
 test_data/
 ```
 
-Add the gitigore file to our repo.
+Now, add the `.gitignore` file to our repository.
+
 ```bash
 git add .gitignore
 git commit -m "Added .gitignore file, ignoring test_data/"
 git push
 ```
 
-## Making changes to images, finally some python!
+## Making Changes to Images - Finally, Some Python!
 
-We'll be using a python libary called `pillow` to manipulate images - this is library that is derived from an older library called `PIL` or Python Image Library.  It's no longer maintained, so use pillow instead.
+We'll use a Python library named `pillow` to manipulate images. This library is derived from an older one called `PIL` (Python Image Library), which is no longer maintained. Therefore, please use `pillow` instead.
 
-We will be re generating our list of image files in python - strictly we don't need to do this, we already have a list of the filenames!  However, you might not in your application so to keep things general, we'll regenerate the filelist in python
+We will be regenerating our list of image files in Python. Technically, we don't need to do this as we already have a list of the filenames. However, to keep things general (since you might not have a list of filenames in your specific application), we'll regenerate the file list in Python.
 
-### venv, conda, anaconda oh my!
+### venv, conda, anaconda, oh my!
 
-If you work on many python projects, you'l have come across python venvs and/or conda. You can think of these as ways to have a python "install" or more accuratly an enviroment for each project.  There are a lot of reasons to use a venv or conda such as keeping different versions of a libary separate. My favorite reason is reproducability. 
+If you work on multiple Python projects, you'll likely have encountered Python virtual environments (venvs) and/or conda. You can think of these as ways to have a separate Python "install" or more accurately, an environment for each project. There are numerous reasons to use a venv or conda such as keeping different versions of a library separate. However, my favorite reason is reproducibility.
 
-If you move to another computer, HPC or have a collaborator working with you, what versions of what libaries do you need to install to make your project work?  Venvs help solve this problem with requirements files.  Conda can also save it's enviroment.  We'll be using venvs and pip in this examples as it's very light weight and has less to install. Conda is great too though.
+If you move to another computer, High-Performance Computing (HPC) system, or have a collaborator working with you, you'll need to know which versions of which libraries are necessary to install to make your project work. Venvs help solve this problem with requirements files. Conda can also save its environment. For this example, we'll use venvs and pip as they are lightweight and require less to install. That being said, Conda is a great option too.
 
-Let's start by creating a venv, assuming you have a fairly new version of python 3 installed everything you need should already be included.
+Let's start by creating a venv, assuming you have a fairly recent version of Python 3 installed, everything you need should already be included.
 
+```bash
+python3 -m venv env #create a venv called env
+
+ls #see the env folder
 ```
-python3 -m venv env #greate a venv called env
 
-ls # see the env folder
-```
+To actually use the venv, you'll need to know some particular commands. These aren't too complicated and eventually, you'll remember them. There are helper scripts available to simplify this process, and Conda is also a bit simpler. We'll do it in a generic, lightweight way:
 
-To actually use the venv you need some arcana, it's not too bad and eventually you just remember it.  There are helper scripts you can use to simplify this, conda is also a little simpler.  We'll do it the generic lightweight way 
-
-```bash=
+```bash
 source env/bin/activate
 ```
 
-Note the leading `env` on your prompt.
+Notice the leading `env` on your prompt.
 
-Install pillow
-```
+Next, install Pillow:
+
+```bash
 pip install pillow
 ```
 
-We can now generate a python requirements file
-```
+Now, let's generate a Python requirements file:
+
+```bash
 pip freeze > requirements.txt
 ```
 
-Add the requirements file to git
-```
+Finally, add the requirements file to Git:
+
+```bash
 git add requirements.txt 
 git commit -m "Added requirements file with pillow"
 ```
 
-### Filelist with python *pathlib*
+### File List with Python's *pathlib*
 
-There are a lot of ways to generate a list of files in python, we're going to use `pathlib` and glob.  Note that pathlib was only introduced in python 3.4 - but most folks python version should be newer than that.
+There are many ways to generate a list of files in Python. We're going to use `pathlib` and `glob`. Note that `pathlib` was only introduced in Python 3.4, but most Python versions in use today should be newer than that.
 
-We'll build up our python program iteratively.  I find it hand to have a REPL (Read-Eval-Print-Loop) to do this.  I'll use Ipython on the command line - there are other options like doing this in a jupyter notebook or spyder etc.
+We'll build up our Python program iteratively. I find it useful to have a REPL (Read-Eval-Print-Loop) to do this. I'll use IPython on the command line, though other options like Jupyter Notebook or Spyder can be used.
 
-Install ipython
+First, install IPython:
+
 ```bash
 pip install ipython
 ```
 
-We'll start with importing pathlib.  In ipython
+Now, let's start with importing pathlib:
+
 ```python
 from pathlib import Path
 
 Path.cwd().joinpath('test_data')
 
-#see output and adapt, lets sstore as a variable
+# see output and adapt, let's store it as a variable
 our_path = Path.cwd().joinpath('test_data')
 
-#lets try get all the files
+# let's try to get all the files
 imfiles = our_path.glob("*")
 
-#Just an generator objects, lets iterate though it
+# It's just a generator object, let's iterate through it
 for f in imfiles:
     print(f)
     
-#ah just a single output, the image directory!  we need to add that to our path
-our_path = Path.cwd().joinpath('test_data/images')
-#or
-our_path = Path.cwd().joinpath('test_data','images') # a bit more general
+# Ah, just a single output, the image directory! We need to add that to our path
+our_path = Path.cwd().joinpath('test_data','images') 
 
-
-#Repeat the for loop
+# Repeat the for loop
 imfiles = our_path.glob("*")
 
-#Just an generator objects, lets iterate though it
+# Let's iterate through it again
 for f in imfiles:
     print(f)
 
-    
-#what if we had non image files?  Lets make it specific to the JPG files we downloaded
+# What if we had non-image files? Let's make it specific to the JPG files we downloaded
 imfiles = our_path.glob("*.JPG")
 imfiles = our_path.rglob("*.JPG")  # if we had subdirectories (recursive glob)
-
 ```
 
-That's a bit untidy, lets put it into a script.
-
-
+That's a bit untidy, let's put it into a script:
 
 `imageprocess.py`
 ```python
@@ -228,7 +230,7 @@ from pathlib import Path
 
 test_path='test_data'
 
-#Set raw path to test data for now
+# Set raw path to test data for now
 raw_path=test_path
 
 # Generate Path objects
@@ -239,7 +241,7 @@ for filename in imfiles:
     print(filename)
 ```
 
-run our script
+You can run our script with:
 
 ```bash
 python imageprocess.py
