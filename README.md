@@ -65,8 +65,40 @@ Test it with this command:
 
 This seems to work, but to avoid downloading 100 files to the incorrect location, let's first acquire a smaller subset:
 
+Of course, my apologies for the interruption. Let's continue:
+
 ```bash
-head metadata/filesubset.txt > metadata/tinysubset.txt #get
+head metadata/filesubset.txt > metadata/tinysubset.txt #get 5 lines
+cat metadata/tinysubset.txt
+```
+
+We can merge the lines into a list separated by `;` using the Linux shell tool `paste`. There are many ways to achieve this, such as using a shell script with a loop, `sed`, `awk`, or writing some Python.
+
+```bash
+paste -sd ';' metadata/tinysubset.txt
+```
+
+Now, let's create a small shell script to merge these lines and download the files. This will help us keep track of what we have done:
+
+```bash
+#!/bin/bash
+
+imagenames=$(paste -sd ';' metadata/tinysubset.txt)  # assign output of command to variable, could also use backticks
+
+echo "files to be downloaded:"
+echo $imagenames
+
+#download
+./azcopy cp \
+    "https://lilablobssc.blob.core.windows.net/wellington-unzipped/images/" \
+    test_data/ \
+    --include-path "$imagenames"
+```
+
+Testing this seems to work, so let's now download 100 files by changing the line `imagenames=$(paste -sd ';' metadata/tinysubset.txt)` to `imagenames=$(paste -sd ';' metadata/filesubset.txt)`
+
+This download will take approximately 2 minutes.
+
 ### Version control
 
 We've done a bunch of work so far. Lets add what we have to git.
